@@ -101,7 +101,7 @@ public class File : IStoreItem
     private static string GetMimeTypeForFileExtension(Uri uri)
     {
         var provider = new FileExtensionContentTypeProvider();
-        if (!provider.TryGetContentType(uri.AbsolutePath, out var contentType))
+        if (!provider.TryGetContentType(uri.GetPath(), out var contentType))
         {
             contentType = "application/octet-stream";
         }

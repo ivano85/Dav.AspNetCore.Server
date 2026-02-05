@@ -102,7 +102,8 @@ internal abstract class RequestHandler : IRequestHandler
         }
         else
         {
-            var itemName = requestUri.GetRelativeUri(Collection.Uri).LocalPath.Trim('/');
+            var relativeUri = requestUri.GetRelativeUri(Collection.Uri);
+            var itemName = (relativeUri.IsAbsoluteUri ? relativeUri.LocalPath : relativeUri.OriginalString).Trim('/');
             Item = await collection.GetItemAsync(itemName, cancellationToken);
         }
 
@@ -216,7 +217,8 @@ internal abstract class RequestHandler : IRequestHandler
         if (error)
             return false;
         
-        var itemName = item.Uri.GetRelativeUri(collection.Uri).LocalPath.TrimStart('/');
+        var itemUri = item.Uri.GetRelativeUri(collection.Uri);
+        var itemName = (itemUri.IsAbsoluteUri ? itemUri.LocalPath : itemUri.OriginalString).TrimStart('/');
         var status = await collection.DeleteItemAsync(itemName, cancellationToken);
         if (status != DavStatusCode.NoContent)
         {
@@ -249,8 +251,9 @@ internal abstract class RequestHandler : IRequestHandler
                     var collection = await Store.GetCollectionAsync(parentUri, cancellationToken);
                     if (collection != null)
                     {
-                        var itemName = resourceUri.GetRelativeUri(collection.Uri).LocalPath.Trim('/');
-                        if (string.IsNullOrWhiteSpace(itemName))
+                        var itemUri = resourceUri.GetRelativeUri(collection.Uri);
+                        var itemName = (itemUri.IsAbsoluteUri ? itemUri.LocalPath : itemUri.OriginalString).Trim('/');
+                        if (string.IsNullOrEmpty(itemName))
                         {
                             items[resourceUri] = collection;
                         }
