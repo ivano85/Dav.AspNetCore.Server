@@ -49,14 +49,14 @@ public class DestinationHeaderValue
 
         if (Uri.TryCreate(input, UriKind.Absolute, out var uri))
         {
-            var pathString = new PathString(uri.LocalPath);
+            var pathString = new PathString(uri.GetPath());
             parsedValue = new DestinationHeaderValue(pathString.ToUri());
             return true;
         }
 
         if(!input.StartsWith("/") && Uri.TryCreate($"/{input}", UriKind.Absolute, out var uri2))
         {
-            var pathString = new PathString(uri2.LocalPath);
+            var pathString = new PathString(uri2.GetPath());
             parsedValue = new DestinationHeaderValue(pathString.ToUri());
             return true;
         }

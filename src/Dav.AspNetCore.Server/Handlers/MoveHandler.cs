@@ -32,7 +32,11 @@ internal class MoveHandler : RequestHandler
         if (!string.IsNullOrWhiteSpace(Context.Request.PathBase))
         {
             if (Context.Request.PathBase.HasValue)
-                destination = new Uri(destination.LocalPath.Substring(Context.Request.PathBase.Value.Length));
+            {
+                var destPath = destination.IsAbsoluteUri ? destination.LocalPath : destination.OriginalString;
+                var trimmed = destPath.Substring(Context.Request.PathBase.Value.Length);
+                destination = new Uri(trimmed, UriKind.Relative);
+            }
         }
         
         var overwrite = WebDavHeaders.Overwrite ?? false;
@@ -45,7 +49,8 @@ internal class MoveHandler : RequestHandler
             return;
         }
 
-        var destinationItemName = destination.GetRelativeUri(destinationParentUri).LocalPath.Trim('/');
+        var destRel = destination.GetRelativeUri(destinationParentUri);
+        var destinationItemName = (destRel.IsAbsoluteUri ? destRel.LocalPath : destRel.OriginalString).Trim('/');
         var destinationItem = await Store.GetItemAsync(destination, cancellationToken);
         if (destinationItem != null && !overwrite)
         {
@@ -145,7 +150,8 @@ internal class MoveHandler : RequestHandler
                 if (destinationMove == null)
                     throw new InvalidOperationException("If the copied item is a collection, the copy result must also be a collection.");
                 
-                var subItemName = subItem.Uri.GetRelativeUri(collectionToMove.Uri).LocalPath.Trim('/');
+                var subRel = subItem.Uri.GetRelativeUri(collectionToMove.Uri);
+                var subItemName = (subRel.IsAbsoluteUri ? subRel.LocalPath : subRel.OriginalString).Trim('/');
                 var error = await MoveItemRecursiveAsync(collectionToMove, subItem, destinationMove, subItemName, errors, cancellationToken);
                 if (!error)
                     subItemError = true;
@@ -155,7 +161,8 @@ internal class MoveHandler : RequestHandler
                 return false;
         }
         
-        var itemName = item.Uri.GetRelativeUri(collection.Uri).LocalPath.Trim('/');
+        var itemRel = item.Uri.GetRelativeUri(collection.Uri);
+        var itemName = (itemRel.IsAbsoluteUri ? itemRel.LocalPath : itemRel.OriginalString).Trim('/');
         var status = await collection.DeleteItemAsync(itemName, cancellationToken);
         if (status != DavStatusCode.NoContent)
         {

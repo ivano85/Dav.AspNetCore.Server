@@ -10,7 +10,8 @@ internal class PutHandler : RequestHandler
     protected override async Task HandleRequestAsync(CancellationToken cancellationToken = default)
     {
         var requestUri = Context.Request.Path.ToUri();
-        var itemName = requestUri.GetRelativeUri(Collection.Uri).LocalPath.Trim('/');
+        var rel = requestUri.GetRelativeUri(Collection.Uri);
+        var itemName = (rel.IsAbsoluteUri ? rel.LocalPath : rel.OriginalString).Trim('/');
         var result = await Collection.CreateItemAsync(itemName, cancellationToken);
         if (result.Item == null)
         {

@@ -41,7 +41,11 @@ internal class CopyHandler : RequestHandler
         if (!string.IsNullOrWhiteSpace(Context.Request.PathBase))
         {
             if (Context.Request.PathBase.HasValue)
-                destination = new Uri(destination.LocalPath.Substring(Context.Request.PathBase.Value.Length));
+            {
+                var destPath = destination.IsAbsoluteUri ? destination.LocalPath : destination.OriginalString;
+                var trimmed = destPath.Substring(Context.Request.PathBase.Value.Length);
+                destination = new Uri(trimmed, UriKind.Relative);
+            }
         }
         
         var overwrite = WebDavHeaders.Overwrite ?? false;
@@ -54,7 +58,8 @@ internal class CopyHandler : RequestHandler
             return;
         }
         
-        var destinationItemName = destination.GetRelativeUri(destinationParentUri).LocalPath.Trim('/');
+        var destRel = destination.GetRelativeUri(destinationParentUri);
+        var destinationItemName = (destRel.IsAbsoluteUri ? destRel.LocalPath : destRel.OriginalString).Trim('/');
         var destinationItem = await Store.GetItemAsync(destination, cancellationToken);
         if (destinationItem != null && !overwrite)
         {
@@ -154,7 +159,8 @@ internal class CopyHandler : RequestHandler
                 if (destinationCopy == null)
                     throw new InvalidOperationException("If the copied item is a collection, the copy result must also be a collection.");
                 
-                var itemName = subItem.Uri.GetRelativeUri(collection.Uri).LocalPath.TrimStart('/');
+                var subRel = subItem.Uri.GetRelativeUri(collection.Uri);
+                var itemName = (subRel.IsAbsoluteUri ? subRel.LocalPath : subRel.OriginalString).TrimStart('/');
                 var error = await CopyItemRecursiveAsync(subItem, destinationCopy, itemName, recursive, errors, cancellationToken);
                 if (!error)
                     subItemError = true;

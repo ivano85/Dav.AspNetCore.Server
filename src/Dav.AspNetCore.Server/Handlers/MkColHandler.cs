@@ -12,7 +12,8 @@ internal class MkColHandler : RequestHandler
         var requestUri = Context.Request.Path.ToUri();
         var parentUri = requestUri.GetParent();
 
-        var collectionName = requestUri.GetRelativeUri(parentUri).LocalPath.Trim('/');
+        var rel = requestUri.GetRelativeUri(parentUri);
+        var collectionName = (rel.IsAbsoluteUri ? rel.LocalPath : rel.OriginalString).Trim('/');
         var result = await Collection.CreateCollectionAsync(collectionName, cancellationToken);
         Context.SetResult(result.StatusCode);
     }

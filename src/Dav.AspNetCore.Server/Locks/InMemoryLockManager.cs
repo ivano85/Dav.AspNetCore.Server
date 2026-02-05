@@ -146,19 +146,18 @@ public sealed class InMemoryLockManager : ILockManager
         ArgumentNullException.ThrowIfNull(uri, nameof(uri));
         
         var allActiveLocks = new List<ResourceLock>();
-        var pathParts = uri.LocalPath.Split('/');
-        if (uri.AbsoluteUri.Equals("/"))
-            pathParts = new[] { "" };
-            
+        var path = uri.GetPath().Trim('/');
+        string[] pathParts = string.IsNullOrEmpty(path) ? new[] { "" } : path.Split('/');
+
         var currentPath = string.Empty;
-            
+
         for (var i = 0; i < pathParts.Length; i++)
         {
-            currentPath += currentPath.Equals("/") ? pathParts[i] : $"/{pathParts[i]}";
+            currentPath += string.IsNullOrEmpty(currentPath) || currentPath == "/" ? $"/{pathParts[i]}" : $"/{pathParts[i]}";
             var activeLocks = locks.Values
-                .Where(x => x.Uri.LocalPath == currentPath && x.IsActive && (x.Recursive || i == pathParts.Length - 1))
+                .Where(x => x.Uri.GetPath() == currentPath && x.IsActive && (x.Recursive || i == pathParts.Length - 1))
                 .ToList();
-                
+
             allActiveLocks.AddRange(activeLocks);
         }
 

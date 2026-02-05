@@ -67,12 +67,13 @@ public abstract class SqlLockManager : ILockManager, IDisposable
                 timeout,
                 DateTime.UtcNow);
             
-            var depth = uri.LocalPath.Count(x => x == '/') - 1;
+            var pathForDepth = uri.GetPath();
+            var depth = pathForDepth.Count(x => x == '/') - 1;
 
             await using var command = GetInsertCommand(
                 connection.Value,
                 newLock.Id.AbsoluteUri,
-                newLock.Uri.LocalPath,
+                newLock.Uri.GetPath(),
                 newLock.LockType,
                 newLock.Owner,
                 newLock.Recursive,
@@ -111,7 +112,7 @@ public abstract class SqlLockManager : ILockManager, IDisposable
         await using var command = GetActiveLockByIdCommand(
             connection.Value,
             token.AbsoluteUri,
-            uri.LocalPath,
+            uri.GetPath(),
             (long)(DateTime.UtcNow - DateTime.UnixEpoch).TotalSeconds);
         
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
@@ -153,7 +154,7 @@ public abstract class SqlLockManager : ILockManager, IDisposable
         await using var command = GetActiveLockByIdCommand(
             connection.Value,
             token.AbsoluteUri,
-            uri.LocalPath,
+            uri.GetPath(),
             (long)(DateTime.UtcNow - DateTime.UnixEpoch).TotalSeconds);
         
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
@@ -186,11 +187,12 @@ public abstract class SqlLockManager : ILockManager, IDisposable
             await connection.Value.OpenAsync(cancellationToken);
 
         var allActiveLocks = new List<ResourceLock>();
-        var depth = uri.LocalPath.Count(x => x == '/') - 1;
+        var pathForDepth = uri.GetPath();
+        var depth = pathForDepth.Count(x => x == '/') - 1;
 
         await using var command = GetActiveLocksCommand(
             connection.Value,
-            uri.LocalPath,
+            uri.GetPath(),
             depth,
             (long)(DateTime.UtcNow - DateTime.UnixEpoch).TotalSeconds);
 

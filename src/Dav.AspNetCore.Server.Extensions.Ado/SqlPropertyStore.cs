@@ -43,7 +43,7 @@ public abstract class SqlPropertyStore : IPropertyStore, IDisposable
             if (!writeLookup.ContainsKey(entry.Key))
                 continue;
 
-            await using var deleteCommand = GetDeleteCommand(connection.Value, entry.Key.Uri.LocalPath);
+            await using var deleteCommand = GetDeleteCommand(connection.Value, entry.Key.Uri.GetPath());
             await deleteCommand.ExecuteNonQueryAsync(cancellationToken);
 
             foreach (var propertyData in entry.Value)
@@ -65,7 +65,7 @@ public abstract class SqlPropertyStore : IPropertyStore, IDisposable
 
                 await using var insertCommand = GetInsertCommand(
                     connection.Value,
-                    entry.Key.Uri.LocalPath,
+                    entry.Key.Uri.GetPath(),
                     propertyData.Key.LocalName,
                     propertyData.Key.NamespaceName,
                     propertyValue);
@@ -90,7 +90,7 @@ public abstract class SqlPropertyStore : IPropertyStore, IDisposable
 
         await using var deleteCommand = GetDeleteCommand(
             connection.Value,
-            item.Uri.LocalPath);
+            item.Uri.GetPath());
 
         await deleteCommand.ExecuteNonQueryAsync(cancellationToken);
         
@@ -117,8 +117,8 @@ public abstract class SqlPropertyStore : IPropertyStore, IDisposable
 
         await using var copyCommand = GetCopyCommand(
             connection.Value,
-            source.Uri.LocalPath,
-            destination.Uri.LocalPath);
+            source.Uri.GetPath(),
+            destination.Uri.GetPath());
         
         await copyCommand.ExecuteNonQueryAsync(cancellationToken);
         
@@ -184,7 +184,7 @@ public abstract class SqlPropertyStore : IPropertyStore, IDisposable
         if (connection.Value.State != ConnectionState.Open)
             await connection.Value.OpenAsync(cancellationToken);
 
-        await using var command = GetSelectCommand(connection.Value, item.Uri.LocalPath);
+        await using var command = GetSelectCommand(connection.Value, item.Uri.GetPath());
 
         var propertyDataList = new List<PropertyData>();
         

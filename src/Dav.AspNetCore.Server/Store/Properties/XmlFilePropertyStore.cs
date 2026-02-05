@@ -44,7 +44,7 @@ public class XmlFilePropertyStore : IPropertyStore
                 propertyStore.Add(new XElement(Property, new XElement(propertyData.Value.Name, propertyData.Value.CurrentValue)));
             }
             
-            var xmlFilePath = Path.Combine(options.RootPath, entry.Key.Uri.LocalPath.TrimStart('/') + ".xml");
+            var xmlFilePath = Path.Combine(options.RootPath, entry.Key.Uri.GetPath().TrimStart('/') + ".xml");
             var fileInfo = new FileInfo(xmlFilePath);
             if (fileInfo.Directory?.Exists == false)
                 fileInfo.Directory.Create();
@@ -64,7 +64,7 @@ public class XmlFilePropertyStore : IPropertyStore
         IStoreItem item, 
         CancellationToken cancellationToken = default)
     {
-        var xmlFilePath = Path.Combine(options.RootPath, item.Uri.LocalPath.TrimStart('/') + ".xml");
+        var xmlFilePath = Path.Combine(options.RootPath, item.Uri.GetPath().TrimStart('/') + ".xml");
         if (File.Exists(xmlFilePath))
             File.Delete(xmlFilePath);
 
@@ -85,8 +85,8 @@ public class XmlFilePropertyStore : IPropertyStore
         IStoreItem destination, 
         CancellationToken cancellationToken = default)
     {
-        var sourceXmlFilePath = Path.Combine(options.RootPath, source.Uri.LocalPath.TrimStart('/') + ".xml");
-        var destinationXmlFilePath = Path.Combine(options.RootPath, destination.Uri.LocalPath.TrimStart('/') + ".xml");
+        var sourceXmlFilePath = Path.Combine(options.RootPath, source.Uri.GetPath().TrimStart('/') + ".xml");
+        var destinationXmlFilePath = Path.Combine(options.RootPath, destination.Uri.GetPath().TrimStart('/') + ".xml");
         
         if (File.Exists(sourceXmlFilePath))
         {
@@ -158,7 +158,7 @@ public class XmlFilePropertyStore : IPropertyStore
         if (propertyCache.TryGetValue(item, out var propertyMap))
             return propertyMap.Values;
         
-        var xmlFilePath = Path.Combine(options.RootPath, item.Uri.LocalPath.TrimStart('/') + ".xml");
+        var xmlFilePath = Path.Combine(options.RootPath, item.Uri.GetPath().TrimStart('/') + ".xml");
         if (!File.Exists(xmlFilePath))
         {
             propertyCache[item] = new Dictionary<XName, PropertyData>();
