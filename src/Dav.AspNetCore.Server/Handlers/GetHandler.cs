@@ -20,6 +20,18 @@ internal class GetHandler : RequestHandler
             return;
         }
 
+        if (Item is IRedirectableStoreItem redirectableItem)
+        {
+            var redirectUri = await redirectableItem.GetRedirectUriAsync(Context, cancellationToken);
+            if (redirectUri != null)
+            {
+                Context.Response.Headers["Location"] = redirectUri.ToString();
+                Context.Response.Headers["Cache-Control"] = "no-store";
+                Context.Response.StatusCode = StatusCodes.Status302Found;
+                return;
+            }
+        }
+
         var contentType = await GetNonExpensivePropertyAsync(Item, XmlNames.GetContentType, cancellationToken);
         if (!string.IsNullOrWhiteSpace(contentType))
             Context.Response.Headers["Content-Type"] = contentType;
